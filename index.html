@@ -5,25 +5,131 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Snake.js</title>
 	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+		body{
+			font-family: 'Press Start 2P', cursive;
+		    margin: 0;
+		    padding: 0;
+		    height: 100vh;
+		    background: #1A1E4D;
+		}
+		.game-wrap{
+			height: 100%;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		}
+		#snake_field{
+			position: relative;
+		    background: transparent;
+		}
+		#game-overlay{
+			position: absolute;
+		    top: 0;
+		    left: 0;
+		    width: 100%;
+		    height: 100%;
+		    display: flex;
+		    flex-direction: column;
+		    align-items: center;
+		    justify-content: center;
+		}
+		#game-overlay h1{
+			position: relative;
+			margin-bottom: 60px;
+		    font-size: 75px;
+		    color: #FE8CDF;
+    		text-shadow: 2px 3px 9px rgba(248,0, 255, .86);
+    		animation: 3s TitleBounce infinite;
+		}
+		@keyframes TitleBounce {
+    		0%, 100%{
+    			transform: scale(1.0);
+    		}
+    		50%{
+    			transform: scale(1.1);
+    		}
+		}
+		#game-overlay h1:after {
+		    content: "by Vadson";
+		    position: absolute;
+		    right: 0;
+		    bottom: -20px;
+		    font-size: 15px;
+		    text-shadow: 4px 4px 0px rgba(0,0,0,.90);
+		    color: #fff;
+		}
+		#game-overlay.hidden{
+			display: none;
+		}
+		#game_start{
+			font-family: 'Press Start 2P', cursive;
+		    padding: 10px 20px;
+		    font-size: 26px;
+		    border: none;
+		    color: #333;
+		    background: #FCD319;
+		    text-shadow: 2px 2px 0px rgb(0 0 0 / 30%);
+		    cursor: pointer;
+		    position: relative;
+		    border-bottom: 4px solid #C68712;
+		    border-right: 3px solid #C68712;
+		    transition: .3s;
+		}
 		.row{
 			display: flex;
 		}
 		.cell{
-			width: 20px;
-			height: 20px;
-			border: 1px solid #ccc;
+			width: 40px;
+			height: 40px;
+			border: 1px solid #ffc100;
+    		box-shadow: 0px 0px 12px rgba(255,242,33,.30);
 		}
 		.cell.active{
-			background: red;
+			position: relative;
+			background: #A5FD43;
+   			box-shadow: 0px 0px 10px rgba(94,247,102,1);
 		}
 		.cell.target{
-			background: blue;
+			background: #F77CFE;
+    		box-shadow: 2px 2px 9px rgba(223,12,218,.74);
+		}
+		.cell.active:after {
+		    content: "";
+		    display: block;
+		    position: absolute;
+		    top: 50%;
+		    left: 50%;
+		    transform: translate(-50%,-50%) rotate(45deg);
+		    width: 4px;
+		    height: 24px;
+		    background: #333;
+		}
+		.cell.active:before {
+		    content: "";
+		    display: block;
+		    position: absolute;
+		    top: 50%;
+		    left: 50%;
+		    transform: translate(-50%,-50%) rotate(135deg);
+		    width: 4px;
+		    height: 24px;
+		    background: #333;
 		}
 	</style>
+
 </head>
 <body>
-
-	<div id="snake_field"></div>
+	<div class="game-wrap">
+		<div id="snake_field"></div>
+	</div>
+	
+	<div id="game-overlay">
+		<h1>SNAKE</h1>
+		<button id="game_start">
+			START
+		</button>
+	</div>
 
 	<script>
 		class Snake{
@@ -38,7 +144,7 @@
 					x: 5,
 					y: 5,
 					tailItems: []
-					// tailItems: [{x: 6, y: 5},{x: 7, y: 5},{x: 8, y: 5}]
+					// tailItems: [{x: 5, y: 6},{x: 5, y: 7},{x: 5, y: 8}]
 				}
 				this.targetOnField = {
 					show: false,
@@ -48,18 +154,20 @@
 					}
 				};
 				this.timer = '';
-				this.init();
 			}
 			init(){
+				this.hideOverlay();
 				this.createField();
-				this.drawTarget();
+				
 				this.startMove();
+				this.drawTarget();
 
 				this.addButtonEvents();
 
 				this.startCounter();
-
-				
+			}
+			hideOverlay(){
+				document.querySelector('#game-overlay').classList.add('hidden');
 			}
 			createField(){
 				for (let i = 0; i<this.height; i++) {
@@ -137,7 +245,7 @@
 			}
 
 			startCounter(){
-				// this.timer = setInterval(()=>this.startMove(), 400);
+				this.timer = setInterval(()=>this.startMove(), 400);
 			}
 
 			countSnakePos(prevPos){
@@ -183,37 +291,44 @@
 						snakeCoords.push(item);
 					})
 				}
-				let xRow = snakeCoords.map(item => item.x),
-					yRow = snakeCoords.map(item => item.y);
 
-				let arrOfWidth = [];
-				for(let i = 0; i <this.width; i++){
-					arrOfWidth.push(i);
-				}
-				let arrOfHeight = [];
-				for(let i = 0; i <this.height; i++){
-					arrOfHeight.push(i);
-				}
+				let matrix = [
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0],
+					[0,0,0,0,0,0,0,0,0,0,0]
+				];
 
-				let xRowEmpty = arrOfWidth.filter(item => !xRow.includes(item)),
-					yRowEmpty = arrOfHeight.filter(item => !yRow.includes(item));
+				snakeCoords.forEach(item => {
+					matrix[item.y][item.x] = 1;
+				});
 
-				console.log(xRowEmpty)
+				let emptyF = [];
 
-				let xRandom = xRowEmpty[Math.floor(Math.random()*xRowEmpty.length)],
-					yRandom = yRowEmpty[Math.floor(Math.random()*yRowEmpty.length)];
+				matrix.forEach((item, indexY) =>{
+					item.forEach((item2, indexX) => {
+						item2 !== 1 ? emptyF.push({indexY, indexX}) : ''
+					})
+				})
+				let randomTarget = emptyF[Math.floor(Math.random()*emptyF.length)]
 
-				console.log(xRandom, yRandom);
+				console.table(emptyF.length);
 
-				let targetXcell = document.querySelector(`[y-pos="${yRandom}"]`),
-					targetXYcell = targetXcell.querySelector(`[x-pos="${xRandom}"]`);
+				let targetXcell = document.querySelector(`[y-pos="${randomTarget.indexY}"]`),
+					targetXYcell = targetXcell.querySelector(`[x-pos="${randomTarget.indexX}"]`);
 
 				targetXYcell.classList.add('target');
 				this.targetOnField = {
 					show: true,
 					coords: {
-						x: xRandom,
-						y: yRandom
+						x: randomTarget.indexX,
+						y: randomTarget.indexY
 					}
 				};
 
@@ -240,7 +355,7 @@
 				}
 			}
 			detectBorder({x, y}){
-				if(x < 0 || y < 0){
+				if(x < 0 || y < 0 || x > this.width-1 || y > this.height-1){
 					clearInterval(this.timer);
 					return false;
 				}
@@ -248,7 +363,12 @@
 			}
 		}
 
-		let snake = new Snake();
+		
+		let startButton = document.querySelector('#game_start');
+			startButton.addEventListener('click', () => {
+				let snake = new Snake();
+				snake.init();
+			});
 	</script>
 </body>
 </html>
