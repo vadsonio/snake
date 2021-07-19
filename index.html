@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Snake.js</title>
+	<style>
+		.row{
+			display: flex;
+		}
+		.cell{
+			width: 20px;
+			height: 20px;
+			border: 1px solid #ccc;
+		}
+		.cell.active{
+			background: red;
+		}
+		.cell.target{
+			background: blue;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="snake_field"></div>
+
+	<script>
+		class Snake{
+			constructor(){
+				this.width = 11;
+				this.height = 10;
+
+				this.mainDIV = document.querySelector('#snake_field');
+
+				this.goDirection = "up";
+				this.snakePos = {
+					x: 5,
+					y: 5,
+					tailItems: []
+					// tailItems: [{x: 6, y: 5},{x: 7, y: 5},{x: 8, y: 5}]
+				}
+				this.targetOnField = {
+					show: false,
+					coords: {
+						x: 0,
+						y: 0
+					}
+				};
+				this.timer = '';
+				this.init();
+			}
+			init(){
+				this.createField();
+				this.drawTarget();
+				this.startMove();
+
+				this.addButtonEvents();
+
+				this.startCounter();
+
+				
+			}
+			createField(){
+				for (let i = 0; i<this.height; i++) {
+					let createHcell = document.createElement("div");
+					createHcell.classList.add("row");
+					createHcell.setAttribute("y-pos", i);
+					for(let j = 0; j<this.width; j++){
+						let createWcell = document.createElement("div");
+						createWcell.classList.add("cell");
+						createWcell.setAttribute("x-pos", j);
+						createHcell.append(createWcell);
+					}
+					this.mainDIV.append(createHcell);
+				}
+			}
+			startMove(){
+				let allCells = document.querySelectorAll(".cell");
+					allCells.forEach(item => item.classList.remove('active'));
+
+				switch(this.goDirection){
+					case "up": {
+						let prevPos = {...this.snakePos};
+						this.snakePos = {...this.snakePos, y: this.snakePos.y -= 1}
+						this.countSnakePos(prevPos);
+						break;
+					}
+					case "down": {
+						let prevPos = {...this.snakePos};
+						this.snakePos = {...this.snakePos, y: this.snakePos.y += 1}
+						this.countSnakePos(prevPos);
+						break;
+					}
+					case "left": {
+						let prevPos = {...this.snakePos};
+						this.snakePos = {...this.snakePos, x: this.snakePos.x -= 1}
+						this.countSnakePos(prevPos);
+						break;
+					}
+					case "right": {
+						let prevPos = {...this.snakePos};
+						this.snakePos = {...this.snakePos, x: this.snakePos.x += 1}
+						this.countSnakePos(prevPos);
+						break;
+					}
+				}
+			}
+
+			addButtonEvents(){
+				document.addEventListener('keydown', (event) => {
+				  const keyName = event.key;
+
+				  let keysArr = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'];
+				  if(keysArr.includes(keyName)){
+				  	switch(keyName){
+				  		case "ArrowUp": {
+				  			this.goDirection === "down" ? "" : this.goDirection = "up";
+				  			break;
+				  		}
+				  		case "ArrowDown": {
+				  			this.goDirection === "up" ? "" : this.goDirection = "down";
+				  			break;
+				  		}
+				  		case "ArrowLeft": {
+				  			this.goDirection === "right" ? "" : this.goDirection = "left";
+				  			break;
+				  		}
+				  		case "ArrowRight": {
+				  			this.goDirection === "left" ? "" : this.goDirection = "right";
+				  			break;
+				  		}
+				  	}
+				  }
+
+				});
+			}
+
+			startCounter(){
+				// this.timer = setInterval(()=>this.startMove(), 400);
+			}
+
+			countSnakePos(prevPos){
+				let status = this.detectBorder(this.snakePos);
+				if(status){
+					this.drawCell(this.snakePos);
+
+					this.detectSnakeTarget();
+
+					if(this.snakePos.tailItems.length > 0){
+						let prevHeadPosition = {
+							x: prevPos.x,
+							y: prevPos.y
+						}
+						this.snakePos.tailItems.pop();
+						this.snakePos.tailItems.unshift(prevHeadPosition);
+
+						this.snakePos.tailItems.forEach((item, index) => {
+							this.drawCell({x:item.x, y:item.y})
+						})
+					}
+				} else {
+					console.log('failed')
+				}
+
+				
+			}
+			drawCell({x, y}){
+				let currentXcell = document.querySelector(`[y-pos="${y}"]`),
+					currentXYcell = currentXcell.querySelector(`[x-pos="${x}"]`);
+
+				currentXYcell.classList.add('active');
+			}
+			drawTarget(){
+				let allCells = document.querySelectorAll(".cell");
+					allCells.forEach(item => item.classList.remove('target'));
+
+				let snakeCoords = [];
+					snakeCoords.push({x: this.snakePos.x, y: this.snakePos.y});
+
+				if(this.snakePos.tailItems){
+					this.snakePos.tailItems.map(item => {
+						snakeCoords.push(item);
+					})
+				}
+				let xRow = snakeCoords.map(item => item.x),
+					yRow = snakeCoords.map(item => item.y);
+
+				let arrOfWidth = [];
+				for(let i = 0; i <this.width; i++){
+					arrOfWidth.push(i);
+				}
+				let arrOfHeight = [];
+				for(let i = 0; i <this.height; i++){
+					arrOfHeight.push(i);
+				}
+
+				let xRowEmpty = arrOfWidth.filter(item => !xRow.includes(item)),
+					yRowEmpty = arrOfHeight.filter(item => !yRow.includes(item));
+
+				console.log(xRowEmpty)
+
+				let xRandom = xRowEmpty[Math.floor(Math.random()*xRowEmpty.length)],
+					yRandom = yRowEmpty[Math.floor(Math.random()*yRowEmpty.length)];
+
+				console.log(xRandom, yRandom);
+
+				let targetXcell = document.querySelector(`[y-pos="${yRandom}"]`),
+					targetXYcell = targetXcell.querySelector(`[x-pos="${xRandom}"]`);
+
+				targetXYcell.classList.add('target');
+				this.targetOnField = {
+					show: true,
+					coords: {
+						x: xRandom,
+						y: yRandom
+					}
+				};
+
+				console.log(`%cTarget coords...${this.targetOnField.coords.x} ${this.targetOnField.coords.y}`, "color: #F7C600");
+
+			}
+			detectSnakeTarget(){
+				let snakePos = {x: this.snakePos.x, y: this.snakePos.y},
+					targetPos = {x: this.targetOnField.coords.x, y: this.targetOnField.coords.y};
+
+				
+				if(JSON.stringify(snakePos) === JSON.stringify(targetPos)){
+					console.log('gotcha!');
+					this.snakePos.tailItems.push(snakePos);
+					this.targetOnField = {
+						show: false,
+						coords: {
+							x: 0,
+							y: 0
+						}
+					};
+
+					this.drawTarget();
+				}
+			}
+			detectBorder({x, y}){
+				if(x < 0 || y < 0){
+					clearInterval(this.timer);
+					return false;
+				}
+				return true
+			}
+		}
+
+		let snake = new Snake();
+	</script>
+</body>
+</html>
