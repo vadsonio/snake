@@ -310,11 +310,10 @@
 			countSnakePos(prevPos){
 				let status = this.detectBorder(this.snakePos);
 				
-
 				if(status){
 					this.drawCell(this.snakePos);
 
-					this.detectSnakeTarget();
+					this.detectSnakeTarget(prevPos);
 
 					if(this.snakePos.tailItems.length > 0){
 						let prevHeadPosition = {
@@ -330,21 +329,14 @@
 					}
 					this.detectSelfTouch();
 				} else {
-					console.log('failed');
-
 					let allCells = document.querySelectorAll(".cell");
-					console.log(allCells);
-						allCells.forEach((item, index) => {
-							setTimeout(()=> item.classList.add("failed-field-cell"), (30 * (index + 1)))
-							// item.classList.remove('target')
-							if(index === allCells.length-1){
-								setTimeout(()=> document.querySelector('.overlay-restart').classList.remove("hidden"), (30 * (index + 1)))
-							}
-						});
-					
+					allCells.forEach((item, index) => {
+						setTimeout(()=> item.classList.add("failed-field-cell"), (30 * (index + 1)))
+						if(index === allCells.length-1){
+							setTimeout(()=> document.querySelector('.overlay-restart').classList.remove("hidden"), (30 * (index + 1)))
+						}
+					});
 				}
-
-				
 			}
 			drawCell({x, y}){
 				let currentXcell = document.querySelector(`[y-pos="${y}"]`),
@@ -352,12 +344,17 @@
 
 				currentXYcell.classList.add('active');
 			}
-			drawTarget(){
+			drawTarget(prevPos){
 				let allCells = document.querySelectorAll(".cell");
 					allCells.forEach(item => item.classList.remove('target'));
 
 				let snakeCoords = [];
+			
+				if(prevPos){
+					snakeCoords.push({x: prevPos.x, y: prevPos.y});
+				} else{
 					snakeCoords.push({x: this.snakePos.x, y: this.snakePos.y});
+				}
 
 				if(this.snakePos.tailItems){
 					this.snakePos.tailItems.map(item => {
@@ -389,6 +386,7 @@
 						item2 !== 1 ? emptyF.push({indexY, indexX}) : ''
 					})
 				})
+				console.table(matrix);
 				let randomTarget = emptyF[Math.floor(Math.random()*emptyF.length)]
 
 				console.table(emptyF.length);
@@ -408,7 +406,7 @@
 				console.log(`%cTarget coords...${this.targetOnField.coords.x} ${this.targetOnField.coords.y}`, "color: #F7C600");
 
 			}
-			detectSnakeTarget(){
+			detectSnakeTarget(prevPos){
 				let snakePos = {x: this.snakePos.x, y: this.snakePos.y},
 					targetPos = {x: this.targetOnField.coords.x, y: this.targetOnField.coords.y};
 
@@ -424,7 +422,7 @@
 						}
 					};
 
-					this.drawTarget();
+					this.drawTarget(prevPos);
 				}
 			}
 			detectBorder({x, y}){
@@ -470,8 +468,6 @@
 						index === snakeCoords.length-1 ? 
 							setTimeout(()=> document.querySelector('.overlay-restart').classList.remove("hidden"), (50 * (index + 1))) : ""
 					}
-					
-					
 				})
 			}
 		}
