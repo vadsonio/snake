@@ -158,6 +158,9 @@
 		.overlay-restart.hidden{
 			display: none;
 		}
+		.failed-field-cell{
+			background: #ff006e!important;
+		}
 	</style>
 
 </head>
@@ -203,6 +206,7 @@
 						y: 0
 					}
 				};
+				this.snakeMoveDelay = true;
 				this.timer = '';
 			}
 			init(){
@@ -270,10 +274,12 @@
 				document.addEventListener('keydown', (event) => {
 				  const keyName = event.key;
 
-				  
-
 				  let keysArr = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'];
-				  if(keysArr.includes(keyName)){
+				  if(this.snakeMoveDelay && keysArr.includes(keyName)){
+
+				  	this.snakeMoveDelay = false;
+				  	setTimeout(() => this.snakeMoveDelay = true, 200);
+
 				  	switch(keyName){
 				  		case "ArrowUp": {
 				  			this.goDirection === "down" ? "" : this.goDirection = "up";
@@ -326,7 +332,16 @@
 				} else {
 					console.log('failed');
 
-					document.querySelector('.overlay-restart').classList.remove("hidden");
+					let allCells = document.querySelectorAll(".cell");
+					console.log(allCells);
+						allCells.forEach((item, index) => {
+							setTimeout(()=> item.classList.add("failed-field-cell"), (30 * (index + 1)))
+							// item.classList.remove('target')
+							if(index === allCells.length-1){
+								setTimeout(()=> document.querySelector('.overlay-restart').classList.remove("hidden"), (30 * (index + 1)))
+							}
+						});
+					
 				}
 
 				
